@@ -14,3 +14,10 @@ Veillez à ne pas oublier les guillemets autour du chemin d'accès s'il contient
 
 * `-k` ou `--kikoo-lol` qui est **optionnel** et qui permet d'ajouter des kikoo lol (ne prend pas de paramètres)
 * `-a` ou `--achtung` qui est **optionnel** et qui permet de transformer des lettres pour la compréhension allemande (ne prend pas de paramètres)
+
+
+Support des balises :
+* h1, h2, h3, h4, h5, h6
+* lists
+* em, strong
+* img, url
