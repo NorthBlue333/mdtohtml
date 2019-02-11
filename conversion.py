@@ -30,29 +30,42 @@ def rewrite(text, file, basetab=2, k=False, a=False):
     tag = []
     link = ''
     islink = False
+    isimg = False
     while char < len(text):
-        if text[char] in ["#", "*", "_", "~", "[", "]", "(", ")"]:
+        if text[char] in ["#", "*", "_", "~", "[", "]", "(", ")", "!"]:
             count, inline = count_char(text[char:])
             mdbal = text[char] * count
-            if mdbal == "#" and text[char-1] == '\n':
-                tag.append('<h1>')
-                file.write(tag[-1])
-            elif mdbal == "##" and text[char-1] == '\n':
-                tag.append('<h2>')
-                file.write(tag[-1])
-            elif mdbal == "###" and text[char-1] == '\n':
-                tag.append('<h3>')
-                file.write(tag[-1])
-            elif mdbal == "####" and text[char-1] == '\n':
-                tag.append('<h4>')
-                file.write(tag[-1])
-            elif mdbal == "#####" and text[char-1] == '\n':
-                tag.append('<h5>')
-                file.write(tag[-1])
-            elif mdbal == "######" and text[char-1] == '\n':
-                tag.append('<h6>')
-                file.write(tag[-1])
+            isfirstel = True
+            countspaces = 1
+            while text[char - countspaces] != '\n':
+                if not text[char - countspaces] in ['\t', ' ']:
+                    isfirstel = False
+                else:
+                    isfirstel = True
+                countspaces +=1
+            if isfirstel or char == 0:
+                if mdbal == "#":
+                    tag.append('<h1>')
+                    file.write(tag[-1])
+                elif mdbal == "##":
+                    tag.append('<h2>')
+                    file.write(tag[-1])
+                elif mdbal == "###":
+                    tag.append('<h3>')
+                    file.write(tag[-1])
+                elif mdbal == "####":
+                    tag.append('<h4>')
+                    file.write(tag[-1])
+                elif mdbal == "#####":
+                    tag.append('<h5>')
+                    file.write(tag[-1])
+                elif mdbal == "######":
+                    tag.append('<h6>')
+                    file.write(tag[-1])
+            elif (not isfirstel) and text[char] == '#':
+                file.write('#')
             elif mdbal in ['*', '_', '**', '__'] and inline:
+                print(text[char])
                 if len(tag) > 0 and tag[-1] in ['<em>', '<strong>']:
                     close_tag(tag, file)
                 else:
@@ -62,20 +75,35 @@ def rewrite(text, file, basetab=2, k=False, a=False):
                     else:
                         tag.append('<strong>')
                         file.write(tag[-1])
+            elif mdbal == '!' and text[char + 1] != '[':
+                file.write('!')
             elif mdbal == '[':
                 islink = True
+                if text[char - 1] == '!':
+                    isimg = True
             elif mdbal == ']':
                 pass
             elif mdbal == '(' and islink:
-                tag.append('<a href="')
+                if isimg:
+                    tag.append('<img src="')
+                else:
+                    tag.append('<a href="')
                 file.write(tag[-1])
                 islink = False
-            elif mdbal ==')' and tag[-1] == '<a href="':
-                tag.remove('<a href="')
-                file.write('">')
-                file.write(link)
-                file.write('</a>')
+            elif len(tag) > 0 and mdbal ==')' and tag[-1] in ['<a href="', '<img src="']:
+                    if isimg:
+                        tag.remove('<img src="')
+                        file.write('" alt="' + link + '"/>')
+                        isimg = False
+                    else:
+                        tag.remove('<a href="')
+                        file.write('">' + link + '</a>')
+                    link = ''
             elif mdbal == '*' and not inline:
+                countspaces = 1
+                while text[char - countspaces] != '\n':
+                    if text[char - countspaces] in ['\t', ' ']:
+                        countspaces += 1
                 if (not '<ul>' in tag) or (tag.count('<ul>') == 1 and text[char - 2] + text[char - 1] in ['\n ', '\n\t']):
                     tag.append('<ul>')
                     file.write('\t' * tab + tag[-1] + '\n')
@@ -86,13 +114,24 @@ def rewrite(text, file, basetab=2, k=False, a=False):
                     file.write('\t' * tab + '</ul>\n')
                     tag.remove('<ul>')
                     file.write('\t' * (tab + basetab) + '<li>')
-                else:
+                elif '<ul>' in tag:
                     file.write('\t' * tab + '<li>')
                 tag.append('<li>')
+
             char += count
         else:
+            if text[char] == 'h':
+                if char < len(text) + 1 and text[char] + text[char + 1] + text[char + 2] + text[char + 3] == "http" and (char == 0 or text[char - 2] + text[char - 1] != "]("):
+                    islink = True
+                    tag.append('<a href="')
+                    file.write(tag[-1])
+            if len(tag) > 0 and (text[char] in [' ', '\n']) and islink and tag[-1] == '<a href="':
+                file.write(link + '">' + link + '</a>')
+                link = ''
+                tag.pop(-1)
+                islink = False
             if text[char] == '\n':
-                if len(tag) > 0 and tag[-1] != '<ul>':
+                if len(tag) > 0 and tag[-1] not in ['<ul>', '<em>', 'strong']:
                     close_tag(tag, file)
                 if (text[char - 1] == '\n' or char == len(text) - 1) and '<ul>' in tag:
                     for ul in range(tag.count('<ul>')):
@@ -129,6 +168,7 @@ def rewrite(text, file, basetab=2, k=False, a=False):
                         else:
                             file.write(text[char])
             char += 1
+
 
 def files_creation(dir, odir, k=False, a=False):
     if a:
