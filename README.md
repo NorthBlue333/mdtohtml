@@ -3,7 +3,7 @@
 
 Afin d'utiliser le programme, il faut ouvrir une invite de commande et exécuter le script python, avec les arguments suivants :
 * `-i` ou `--input-directory` qui est **obligatoire** et qui permet de renseigner le répertoire contenant les fichiers .md
-* `-o` ou `--output-directory` qui est **obligatoire** et qui permet de renseigner le répertoire qui contiendra les fichiers .htmlfile
+* `-o` ou `--output-directory` qui est **obligatoire** et qui permet de renseigner le répertoire qui contiendra les fichiers .htmlfile (si le dossier existe déjà il sera supprimé !)
 
 
 **ATTENTION**
